@@ -69,21 +69,50 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        g.setColor(Color.RED);
-        g.fillOval(food.x * CELL, food.y * CELL, CELL, CELL);
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        boolean head = true;
-        for (Point p : snake) {
-            g.setColor(head ? Color.GREEN : new Color(0, 170, 0));
-            g.fillRect(p.x * CELL, p.y * CELL, CELL - 1, CELL - 1);
-            head = false;
+        // Colourful checkerboard background
+        for (int x = 0; x < COLS; x++) {
+            for (int y = 0; y < ROWS; y++) {
+                g2.setColor((x + y) % 2 == 0 ? new Color(30, 30, 70) : new Color(40, 40, 90));
+                g2.fillRect(x * CELL, y * CELL, CELL, CELL);
+            }
         }
 
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("SansSerif", Font.BOLD, 14));
-        g.drawString("Score: " + score, 8, 18);
+        // Food: glowing red/orange apple
+        int fx = food.x * CELL, fy = food.y * CELL;
+        g2.setColor(new Color(255, 120, 0, 90));
+        g2.fillOval(fx - 3, fy - 3, CELL + 6, CELL + 6);
+        g2.setPaint(new GradientPaint(fx, fy, new Color(255, 90, 90), fx + CELL, fy + CELL, new Color(200, 0, 40)));
+        g2.fillOval(fx + 1, fy + 1, CELL - 2, CELL - 2);
+        g2.setColor(new Color(60, 200, 60));
+        g2.fillOval(fx + CELL / 2, fy - 2, 6, 6);
+
+        // Snake: rainbow body that shifts along its length, with eyes on the head
+        int i = 0;
+        for (Point p : snake) {
+            float hue = ((i * 0.04f) + score * 0.05f) % 1f;
+            g2.setColor(Color.getHSBColor(hue, 0.85f, 1f));
+            g2.fillRoundRect(p.x * CELL + 1, p.y * CELL + 1, CELL - 2, CELL - 2, 8, 8);
+            if (i == 0) {
+                g2.setColor(Color.WHITE);
+                int ex = p.x * CELL, ey = p.y * CELL;
+                g2.fillOval(ex + 4, ey + 5, 5, 5);
+                g2.fillOval(ex + 11, ey + 5, 5, 5);
+                g2.setColor(Color.BLACK);
+                g2.fillOval(ex + 5 + dx, ey + 6 + dy, 3, 3);
+                g2.fillOval(ex + 12 + dx, ey + 6 + dy, 3, 3);
+            }
+            i++;
+        }
+
+        g.setColor(new Color(255, 220, 80));
+        g.setFont(new Font("SansSerif", Font.BOLD, 16));
+        g.drawString("Score: " + score, 8, 20);
 
         if (gameOver) {
+            g.setColor(new Color(255, 90, 120));
             g.setFont(new Font("SansSerif", Font.BOLD, 32));
             String msg = "Game Over";
             int w = g.getFontMetrics().stringWidth(msg);
